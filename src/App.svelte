@@ -96,6 +96,7 @@
       /* then request ICE restart */
       console.log("ice connection state: FAILED");
       peerConnection.restartIce();
+      start()
     }
   });
 
