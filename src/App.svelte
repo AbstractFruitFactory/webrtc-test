@@ -96,16 +96,16 @@
     receivedMessage = ev.data;
   };
 
-  let sendBtnActivated = false
+  let sendBtnDisabled = true
 
   dataChannel.onopen = () => {
     console.log("dataChannel open");
-    sendBtnActivated = true
+    sendBtnDisabled = false
   };
 
   dataChannel.onclose = () => {
     console.log("dataChannel closed");
-    sendBtnActivated = false
+    sendBtnDisabled = true
   };
 
   peerConnection.addEventListener("iceconnectionstatechange", (event) => {
@@ -126,5 +126,5 @@
 
 <button on:click={start}>Start</button>
 <input type="text" bind:value={message} />
-<button on:click={sendMessage} disabled={sendBtnActivated}>Send</button>
+<button on:click={sendMessage} disabled={sendBtnDisabled}>Send</button>
 Got message: {receivedMessage}
