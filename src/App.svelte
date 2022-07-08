@@ -1,5 +1,5 @@
 <script lang="ts">
-  const serverConnection = new WebSocket("wss://52d8-89-114-37-188.ngrok.io");
+  const serverConnection = new WebSocket("wss://34be-89-114-37-188.ngrok.io");
 
   const gotMessageFromServer = async (message) => {
     console.log("got message from server", message.data);
