@@ -28,10 +28,7 @@
     serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
     serverConnection.onmessage = gotMessageFromServer;
 
-    serverConnection.onclose = () => {
-      serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
-      serverConnection.onmessage = gotMessageFromServer;
-    };
+    serverConnection.onclose = setupWebsocketConnection
   };
 
   setupWebsocketConnection();
