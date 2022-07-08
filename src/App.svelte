@@ -1,79 +1,45 @@
 <script lang="ts">
   const SIGNALING_URL = "34be-89-114-37-188.ngrok.io";
-  let ws: WebSocket;
-  let polite = false;
-  let isInitiator = false;
-  let makingOffer = false;
+  let serverConnection: WebSocket;
 
-  // check if desktop browser
-  if (typeof screen.orientation == "undefined") {
-    polite = true;
-  }
+  let isInitiator = false;
 
   const gotMessageFromServer = async (message) => {
-    /*
     console.log("got message from server", message.data);
 
     var signal = JSON.parse(message.data);
 
-    const offerCollision =
-      signal.sdp.type == "offer" &&
-      (makingOffer || pc.signalingState != "stable");
-
     if (signal.sdp) {
-      await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(signal.sdp)
+      );
       if (signal.sdp.type == "offer") {
         isInitiator = false;
-        const answer = await pc.createAnswer();
+        const answer = await peerConnection.createAnswer();
         gotDescription(answer);
       }
     }
 
-    if (signal.ice) pc.addIceCandidate(new RTCIceCandidate(signal.ice));
-
-    */
-
-    const signal = JSON.parse(message.data);
-    try {
-      if (signal.sdp) {
-        const offerCollision =
-          signal.sdp.type == "offer" &&
-          (makingOffer || pc.signalingState != "stable");
-
-        const ignoreOffer = !polite && offerCollision;
-        if (ignoreOffer) {
-          return;
-        }
-
-        await pc.setRemoteDescription(signal.sdp);
-        if (signal.sdp.type == "offer") {
-          await pc.setLocalDescription();
-          ws.send(JSON.stringify({ sdp: pc.localDescription }));
-        }
-      } else if (signal.ice) {
-        await pc.addIceCandidate(signal.ice);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    if (signal.ice)
+      peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice));
   };
 
   const setupWebsocketConnection = () => {
-    ws = new WebSocket(`wss://${SIGNALING_URL}`);
-    ws.onmessage = gotMessageFromServer;
+    serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
+    serverConnection.onmessage = gotMessageFromServer;
 
-    ws.onclose = setupWebsocketConnection;
+    serverConnection.onclose = setupWebsocketConnection
   };
 
   setupWebsocketConnection();
 
-  /*
   const gotDescription = async (description: RTCSessionDescriptionInit) => {
-    await pc.setLocalDescription(description);
+    await peerConnection.setLocalDescription(description);
     console.log("sending description to signaling server");
-    ws.send(JSON.stringify({ sdp: description }));
+    serverConnection.send(JSON.stringify({ sdp: description }));
   };
-*/
+
+  let peerConnection: RTCPeerConnection;
 
   const peerConnectionConfig = {
     iceServers: [
@@ -101,39 +67,23 @@
     ],
   };
 
-  let pc: RTCPeerConnection;
+  peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
-  pc = new RTCPeerConnection(peerConnectionConfig);
-
-  pc.onnegotiationneeded = async () => {
-    try {
-      makingOffer = true;
-      await pc.setLocalDescription();
-      ws.send(JSON.stringify({ sdp: pc.localDescription }));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      makingOffer = false;
-    }
-  };
-
-  /*
   const start = async () => {
     isInitiator = true;
-    const offer = await pc.createOffer();
+    const offer = await peerConnection.createOffer();
     gotDescription(offer);
   };
-  */
 
   const gotIceCandidate = (event) => {
     if (event.candidate != null) {
-      ws.send(JSON.stringify({ ice: event.candidate }));
+      serverConnection.send(JSON.stringify({ ice: event.candidate }));
     }
   };
 
-  pc.onicecandidate = gotIceCandidate;
+  peerConnection.onicecandidate = gotIceCandidate;
 
-  const dataChannel = pc.createDataChannel("data", {
+  const dataChannel = peerConnection.createDataChannel("data", {
     negotiated: true,
     id: 0,
     ordered: true,
@@ -146,25 +96,26 @@
     receivedMessage = ev.data;
   };
 
-  let sendBtnActivated = false;
+  let sendBtnActivated = false
 
   dataChannel.onopen = () => {
     console.log("dataChannel open");
-    sendBtnActivated = true;
+    sendBtnActivated = true
   };
 
   dataChannel.onclose = () => {
     console.log("dataChannel closed");
-    sendBtnActivated = false;
+    sendBtnActivated = false
   };
 
-  pc.addEventListener("iceconnectionstatechange", (event) => {
-    console.log("iceConnectionState", pc.iceConnectionState);
-    if (pc.iceConnectionState === "failed") {
+  peerConnection.addEventListener("iceconnectionstatechange", (event) => {
+    console.log("iceConnectionState", peerConnection.iceConnectionState);
+    if (peerConnection.iceConnectionState === "failed") {
       /* possibly reconfigure the connection in some way here */
       /* then request ICE restart */
       console.log("ice connection state: FAILED");
-      pc.restartIce();
+      peerConnection.restartIce();
+      if (isInitiator) start();
     }
   });
 
@@ -173,6 +124,7 @@
   const sendMessage = () => dataChannel.send(message);
 </script>
 
+<button on:click={start}>Start</button>
 <input type="text" bind:value={message} />
 <button on:click={sendMessage} disabled={sendBtnActivated}>Send</button>
 Got message: {receivedMessage}
