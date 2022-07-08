@@ -1,7 +1,8 @@
 <script lang="ts">
-  const serverConnection = new WebSocket("wss://34be-89-114-37-188.ngrok.io");
+  const SIGNALING_URL = "34be-89-114-37-188.ngrok.io";
+  let serverConnection;
 
-  let isInitiator = false
+  let isInitiator = false;
 
   const gotMessageFromServer = async (message) => {
     console.log("got message from server", message.data);
@@ -13,7 +14,7 @@
         new RTCSessionDescription(signal.sdp)
       );
       if (signal.sdp.type == "offer") {
-        isInitiator = false
+        isInitiator = false;
         const answer = await peerConnection.createAnswer();
         gotDescription(answer);
       }
@@ -23,13 +24,23 @@
       peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice));
   };
 
+  const setupWebsocketConnection = () => {
+    serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
+    serverConnection.onmessage = gotMessageFromServer;
+    
+    serverConnection.onclose(() => {
+      serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
+      serverConnection.onmessage = gotMessageFromServer;
+    });
+  };
+
+  setupWebsocketConnection();
+
   const gotDescription = async (description: RTCSessionDescriptionInit) => {
     await peerConnection.setLocalDescription(description);
     console.log("sending description to signaling server");
     serverConnection.send(JSON.stringify({ sdp: description }));
   };
-
-  serverConnection.onmessage = gotMessageFromServer;
 
   let peerConnection: RTCPeerConnection;
 
@@ -62,7 +73,7 @@
   peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
   const start = async () => {
-    isInitiator = true
+    isInitiator = true;
     const offer = await peerConnection.createOffer();
     gotDescription(offer);
   };
@@ -81,11 +92,11 @@
     ordered: true,
   });
 
-  let receivedMessage = ''
+  let receivedMessage = "";
 
   dataChannel.onmessage = (ev) => {
-    console.log('got message: ', ev.data)
-    receivedMessage = ev.data
+    console.log("got message: ", ev.data);
+    receivedMessage = ev.data;
   };
 
   dataChannel.onopen = () => {
@@ -103,16 +114,16 @@
       /* then request ICE restart */
       console.log("ice connection state: FAILED");
       peerConnection.restartIce();
-      if(isInitiator) start()
+      if (isInitiator) start();
     }
   });
 
-  let message
+  let message;
 
-  const sendMessage = () => dataChannel.send(message)
+  const sendMessage = () => dataChannel.send(message);
 </script>
 
 <button on:click={start}>Start</button>
-<input type='text' bind:value={message}/>
+<input type="text" bind:value={message} />
 <button on:click={sendMessage}>Send</button>
 Got message: {receivedMessage}
