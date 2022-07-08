@@ -75,20 +75,6 @@
   };
 */
 
-  let pc: RTCPeerConnection;
-
-  pc.onnegotiationneeded = async () => {
-    try {
-      makingOffer = true;
-      await pc.setLocalDescription();
-      ws.send(JSON.stringify({ sdp: pc.localDescription }));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      makingOffer = false;
-    }
-  };
-
   const peerConnectionConfig = {
     iceServers: [
       {
@@ -115,8 +101,22 @@
     ],
   };
 
+  let pc: RTCPeerConnection;
+
   pc = new RTCPeerConnection(peerConnectionConfig);
- 
+
+  pc.onnegotiationneeded = async () => {
+    try {
+      makingOffer = true;
+      await pc.setLocalDescription();
+      ws.send(JSON.stringify({ sdp: pc.localDescription }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      makingOffer = false;
+    }
+  };
+
   /*
   const start = async () => {
     isInitiator = true;
