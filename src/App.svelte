@@ -1,6 +1,6 @@
 <script lang="ts">
   const SIGNALING_URL = "34be-89-114-37-188.ngrok.io";
-  let serverConnection;
+  let serverConnection: WebSocket;
 
   let isInitiator = false;
 
@@ -27,11 +27,11 @@
   const setupWebsocketConnection = () => {
     serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
     serverConnection.onmessage = gotMessageFromServer;
-    
-    serverConnection.onclose(() => {
+
+    serverConnection.onclose = () => {
       serverConnection = new WebSocket(`wss://${SIGNALING_URL}`);
       serverConnection.onmessage = gotMessageFromServer;
-    });
+    };
   };
 
   setupWebsocketConnection();
