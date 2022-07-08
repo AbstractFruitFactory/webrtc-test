@@ -77,8 +77,11 @@
     ordered: true,
   });
 
+  let receivedMessage = ''
+
   dataChannel.onmessage = (ev) => {
     console.log('got message: ', ev.data)
+    receivedMessage = ev.data
   };
 
   dataChannel.onopen = () => {
@@ -108,3 +111,4 @@
 <button on:click={start}>Start</button>
 <input type='text' bind:value={message}/>
 <button on:click={sendMessage}>Send</button>
+Got message: {receivedMessage}
