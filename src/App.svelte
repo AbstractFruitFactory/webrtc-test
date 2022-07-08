@@ -1,6 +1,8 @@
 <script lang="ts">
   const serverConnection = new WebSocket("wss://34be-89-114-37-188.ngrok.io");
 
+  let isInitiator = false
+
   const gotMessageFromServer = async (message) => {
     console.log("got message from server", message.data);
 
@@ -11,6 +13,7 @@
         new RTCSessionDescription(signal.sdp)
       );
       if (signal.sdp.type == "offer") {
+        isInitiator = false
         const answer = await peerConnection.createAnswer();
         gotDescription(answer);
       }
@@ -59,6 +62,7 @@
   peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
   const start = async () => {
+    isInitiator = true
     const offer = await peerConnection.createOffer();
     gotDescription(offer);
   };
@@ -99,7 +103,7 @@
       /* then request ICE restart */
       console.log("ice connection state: FAILED");
       peerConnection.restartIce();
-      start()
+      if(isInitiator) start()
     }
   });
 
