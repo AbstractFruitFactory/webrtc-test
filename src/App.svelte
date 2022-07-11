@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SIGNALING_URL = "34be-89-114-37-188.ngrok.io";
+  const SIGNALING_URL = "9c0-89-114-37-188.ngrok.io";
   let serverConnection: WebSocket;
 
   let isInitiator = false;
