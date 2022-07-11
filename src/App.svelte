@@ -65,6 +65,7 @@
       //   credential: "password",
       // },
     ],
+    iceTransportPolicy: 'relay'
   };
 
   peerConnection = new RTCPeerConnection(peerConnectionConfig);
