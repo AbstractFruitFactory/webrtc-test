@@ -113,9 +113,9 @@
     if (peerConnection.iceConnectionState === "failed" || peerConnection.iceConnectionState === "disconnected") {
       /* possibly reconfigure the connection in some way here */
       /* then request ICE restart */
-      //console.log("restarting ice");
-      //peerConnection.restartIce();
-      //if (isInitiator) start();
+      console.log("restarting ice");
+      peerConnection.restartIce();
+      if (isInitiator) start();
     }
   });
 
