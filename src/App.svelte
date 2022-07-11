@@ -110,7 +110,7 @@
 
   peerConnection.addEventListener("iceconnectionstatechange", (event) => {
     console.log("iceConnectionState", peerConnection.iceConnectionState);
-    if (peerConnection.iceConnectionState === "failed" || peerConnection.iceConnectionState === "disconnected") {
+    if (peerConnection.iceConnectionState === "failed") {
       /* possibly reconfigure the connection in some way here */
       /* then request ICE restart */
       console.log("restarting ice");
