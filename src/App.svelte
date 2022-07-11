@@ -115,7 +115,7 @@
       /* possibly reconfigure the connection in some way here */
       /* then request ICE restart */
       console.log("restarting ice");
-      // peerConnection.restartIce();
+      peerConnection.restartIce();
       if (isInitiator) start();
     }
   });
